@@ -1,63 +1,75 @@
 package main
 
 import (
-	"strconv"
-
-	"github.com/abiosoft/ishell"
 	"gitlab.grupoesfera.com.ar/CAP-00082-GrupoEsfera-GO/src/domain"
+	"gitlab.grupoesfera.com.ar/CAP-00082-GrupoEsfera-GO/src/rest"
 	"gitlab.grupoesfera.com.ar/CAP-00082-GrupoEsfera-GO/src/service"
 )
 
 func main() {
 
-	shell := ishell.New()
-	shell.SetPrompt("Tweeter >> ")
-	shell.Print("Type 'help' to know commands\n")
+	var tweetWriter service.TweetWriter
+	tweetWriter = service.NewFileTweetWriter()
+	tweetManager := service.NewTweetManager(tweetWriter)
+	// Create and publish a tweet
 
-	shell.AddCmd(&ishell.Cmd{
-		Name: "publishTweet",
-		Help: "Publishes a tweet",
-		Func: func(c *ishell.Context) {
+	user := "grupoesfera"
+	text := "This is my first tweet"
+	tweet := domain.NewTweet(user, text)
+	// Operation
+	tweetManager.PublishTweet(tweet)
 
-			defer c.ShowPrompt(true)
+	ginServer := rest.NewGinServer(tweetManager)
+	ginServer.StartServer()
+	/*
+		shell := ishell.New()
+		shell.SetPrompt("Tweeter >> ")
+		shell.Print("Type 'help' to know commands\n")
 
-			c.Print("Write your user: ")
+		shell.AddCmd(&ishell.Cmd{
+			Name: "publishTweet",
+			Help: "Publishes a tweet",
+			Func: func(c *ishell.Context) {
 
-			user := c.ReadLine()
+				defer c.ShowPrompt(true)
 
-			c.Print("Write your tweet: ")
+				c.Print("Write your user: ")
 
-			text := c.ReadLine()
+				user := c.ReadLine()
 
-			tweet := domain.NewTweet(user, text)
+				c.Print("Write your tweet: ")
 
-			service.PublishTweet(tweet)
+				text := c.ReadLine()
 
-			c.Print("Tweet sent\n")
+				tweet := domain.NewTweet(user, text)
 
-			return
-		},
-	})
+				service.PublishTweet(tweet)
 
-	shell.AddCmd(&ishell.Cmd{
-		Name: "showTweet",
-		Help: "Shows a tweet",
-		Func: func(c *ishell.Context) {
+				c.Print("Tweet sent\n")
 
-			defer c.ShowPrompt(true)
+				return
+			},
+		})
 
-			c.Print("Write twit ID: ")
+		shell.AddCmd(&ishell.Cmd{
+			Name: "showTweet",
+			Help: "Shows a tweet",
+			Func: func(c *ishell.Context) {
 
-			id, _ := strconv.Atoi(c.ReadLine())
+				defer c.ShowPrompt(true)
 
-			tweet := service.GetTweetById(id)
+				c.Print("Write twit ID: ")
 
-			c.Println(tweet)
+				id, _ := strconv.Atoi(c.ReadLine())
 
-			return
-		},
-	})
+				tweet := service.GetTweetById(id)
 
-	shell.Run()
+				c.Println(tweet)
 
+				return
+			},
+		})
+
+		shell.Run()
+	*/
 }

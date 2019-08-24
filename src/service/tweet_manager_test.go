@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -208,7 +209,7 @@ func TestPublishedTweetIsSavedToExternalResource(t *testing.T) {
 	// Operation
 	id, _ := tweetManager.PublishTweet(tweet)
 
-	tweetWriter.Write(tweet)
+	//tweetWriter.Write(tweet)
 
 	// Validation
 	memoryWriter := (tweetWriter).(*service.MemoryTweetWriter)
@@ -222,4 +223,63 @@ func TestPublishedTweetIsSavedToExternalResource(t *testing.T) {
 		t.Errorf("...")
 	}
 
+}
+
+func TestCanSearchForTweetContainingText(t *testing.T) {
+	// Initialization
+	var tweetWriter service.TweetWriter
+	tweetWriter = service.NewFileTweetWriter()
+	tweetManager := service.NewTweetManager(tweetWriter)
+	// Create and publish a tweet
+
+	user := "grupoesfera"
+	text := "This is my first tweet"
+	tweet := domain.NewTweet(user, text)
+	// Operation
+	tweetManager.PublishTweet(tweet)
+
+	tweetWriter.Write(tweet)
+
+	// Operation
+	searchResult := make(chan domain.Tweet)
+	query := "first"
+	tweetManager.SearchTweetsContaining(query, searchResult)
+
+	// Validation
+	foundTweet := <-searchResult
+
+	if foundTweet == nil {
+		t.Errorf("...")
+	}
+	if !strings.Contains(foundTweet.GetText(), query) {
+		t.Errorf("...")
+	}
+}
+
+func BenchmarkPublishTweetWithFileTweetWriter(b *testing.B) {
+
+	// Initialization
+	fileTweetWriter := service.NewFileTweetWriter()
+	tweetManager := service.NewTweetManager(fileTweetWriter)
+
+	tweet := domain.NewTweet("grupoesfera", "This is my tweet")
+
+	// Operation
+	for n := 0; n < b.N; n++ {
+		tweetManager.PublishTweet(tweet)
+	}
+}
+
+func BenchmarkPublishTweetWithMemoryTweetWriter(b *testing.B) {
+
+	// Initialization
+	memoryTweetWriter := service.NewMemoryTweetWriter()
+	tweetManager := service.NewTweetManager(memoryTweetWriter)
+
+	tweet := domain.NewTweet("grupoesfera", "This is my tweet")
+
+	// Operation
+	for n := 0; n < b.N; n++ {
+		tweetManager.PublishTweet(tweet)
+	}
 }

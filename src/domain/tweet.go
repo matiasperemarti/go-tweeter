@@ -92,8 +92,6 @@ func NewQuotedTweet(user, text string, quotedTweet Tweet) *QuotedTweet {
 		QuotedTweet: quotedTweet}
 }
 
-//func (quotedTweet *QuotedTweet) GetQuotedTweet()
-
 func (imageTweet *ImageTweet) PrintableTweet() string {
 	return fmt.Sprintf("@%s: %s\n%s", imageTweet.GetUser(), imageTweet.GetText(), imageTweet.GetUrl())
 }

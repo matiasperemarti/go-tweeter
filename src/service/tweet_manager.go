@@ -2,10 +2,13 @@ package service
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.grupoesfera.com.ar/CAP-00082-GrupoEsfera-GO/src/domain"
 )
+
+//const tweetFilePath = "tweets.txt"
 
 type TweetManager struct {
 	tweets       []domain.Tweet
@@ -57,6 +60,8 @@ func (tweetManager *TweetManager) PublishTweet(tweetToPublish domain.Tweet) (id 
 
 	tweetManager.tweetsByUser[tweetToPublish.GetUser()] = append(tweetManager.tweetsByUser[tweetToPublish.GetUser()], tweetToPublish)
 
+	tweetManager.tweetWriter.Write(tweetToPublish)
+
 	return tweetToPublish.GetId(), nil
 }
 
@@ -87,4 +92,16 @@ func (tweetManager *TweetManager) CountTweetsByUser(user string) int {
 
 func (tweetManager *TweetManager) GetTweetsByUser(user string) []domain.Tweet {
 	return tweetManager.tweetsByUser[user]
+}
+
+func (tweetManager *TweetManager) SearchTweetsContaining(query string, searchResult chan domain.Tweet) {
+	go func() {
+		defer close(searchResult)
+		for _, tweet := range tweetManager.tweets {
+			if strings.Contains(tweet.GetText(), query) {
+				searchResult <- tweet
+			}
+		}
+	}()
+
 }
